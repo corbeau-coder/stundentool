@@ -63,30 +63,29 @@ class data_store(BaseModel):
         return
 
     def add_item(self, hours: float):
-        new_data_object = data_object(hours)
-
+        self.store_data(data_object(hours))
         return
     
     def read_item(self, index: int) -> data_object:
         return None
-    
-    def read_all_items(self) -> list[data_object]:
-        return None
-    
+      
     def read_time_stats(self) -> tuple [float, float]:
         return self.hours_overhang_initial, self.hours_overhang_left
     
+    def read_data(self) -> list[data_object]:
+        return None
+
     def store_data(self, data: data_object):
-        file_content_body = self.read_all_items()
+        file_content_body = self.read_data()
         file_content_body.append(data)
         #IO store body
         return
 
-    def store_header():
+    def read_header():
         #write header (self.hours_overhang_inital, self.hours_overhang_left)
         return
 
-    def read_header():
+    def store_header():
         #write header (self.hours_overhang_inital, self.hours_overhang_left)
         return
 
