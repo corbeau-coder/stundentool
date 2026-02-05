@@ -9,7 +9,7 @@ def graduation_checker(value_to_check: float):
     if not (isinstance(value_to_check, float)):
         logger.error(f"Error handling hour input {value_to_check}: wrong input type")
         raise TypeError("Error: input has wrong type, expected float ( 12.34 )")
-    elif not ((value_to_check % .75 == 0) | (value_to_check % .5 == 0) | (value_to_check % .25 == 0)): 
+    elif not (value_to_check % .25 == 0): 
         logger.error(f"Error handling hour input {value_to_check}: valid float but invalid graduated")
         raise ValueError("Error: Value given is not chosen correctly")
     else:
