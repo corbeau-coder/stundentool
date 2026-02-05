@@ -1,8 +1,9 @@
-from pydantic import BaseModel, datetime
+from pydantic import BaseModel
 
 from loguru import logger
 
-import datetime as dttime
+import datetime as datetime
+
 
 def graduation_checker(value_to_check: float):
     if not (isinstance(value_to_check, float)):
@@ -13,9 +14,13 @@ def graduation_checker(value_to_check: float):
         raise ValueError("Error: Value given is not chosen correctly")
     else:
         return
+        
+
 class data_object(BaseModel):
-    timestamp: datetime
+    timestamp: datetime.datetime
     hours: float
+
+    
 
     def __init__(self, hours: float) -> tuple[bool, Exception]:
         try:
@@ -24,7 +29,7 @@ class data_object(BaseModel):
             logger.error(f"Error initiating the data object\ninput value: {hours}")
             raise e
         else:
-            self.timestamp = dttime.datetime.now()
+            self.timestamp = datetime.datetime.now()
             self.hours = hours
             logger.debug("Created data object with following variable values:\nttimestamp: {self.timestamp}\nhours: {self.hours}\n")
             return (True, None)
