@@ -1,5 +1,20 @@
+import sys
 import argparse
+
 from loguru import logger
+
+
+def graduation_checker(value_to_check: float):
+    if not (isinstance(value_to_check, float)):
+        logger.error(f"Error handling hour input {value_to_check}: wrong input type")
+        raise TypeError("Error: input has wrong type, expected float ( 12.34 )")
+    elif not (value_to_check % 0.25 == 0):
+        logger.error(
+            f"Error handling hour input {value_to_check}: valid float but invalid graduated"
+        )
+        raise ValueError("Error: Value given is not chosen correctly")
+    else:
+        return
 
 
 def main():
@@ -29,6 +44,14 @@ def main():
         logger.level("DEBUG")
     else:
         logger.level("INFO")
+
+    try:
+        graduation_checker(args.hours)
+    except Exception as e:
+        logger.error(
+            f"Error initiating the data object\ninput value: {args.hours} \nException {str(e)}"
+        )
+        sys.exit(0)
 
     # arguments: read, change, store, init
     return
