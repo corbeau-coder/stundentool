@@ -1,6 +1,6 @@
 import sys
 import argparse
-
+from modules.data.data_handler import data_store
 from loguru import logger
 
 
@@ -13,9 +13,14 @@ def main():
     )
 
     parser.add_argument(
-        "hours",
+        "[hours.minutes]",
         type=float,
         help="time to scraped of the overhang budget. Schema HOURS.MINUTES - only 4 values are allowed for minutes: 00,25,50,75 reflecting that we usually round costs in 15 minute graduation",
+    )
+    parser.add_argument(
+        "--init [hours.minutes]",
+        help="will initiate the db with the hour overhang budget to be scraped from. ",
+        action="store_true"
     )
     parser.add_argument(
         "--purge",
@@ -28,6 +33,8 @@ def main():
     parser.add_argument("--verbose", action="store_true")
 
     args = parser.parse_args()
+    
+
     if args.verbose:
         logger.level("DEBUG")
     else:
@@ -35,7 +42,10 @@ def main():
 
 
     if args.purge:
-        purge()
+            storage = data_store()
+            purge(storage)
+    elif args.init:
+    
 
         
     try:
@@ -63,13 +73,14 @@ def graduation_checker(value_to_check: float):
         return
 
 
-def purge():
+def purge(storage: data_store):
     logger.warning("WARNING: you ask for purging all data - data will be completly lost! Please confirm by typing y, any other character or string will abort: ")
     input_data = input("prees y to continue, anything else to aboort:")
     logger.debug("Input given: {input_data}")
     if (input_data and input_data == len(input_data) * input_data[0] and input_data == "y"):
         logger.info("Purging requested, starting routine deleting db")
-        delete_db()
+        storage.delete_db(do_purge=True)
+        logger.info("done. Please use --init [hours.minutes] to re-initiate the program")
         sys.exit(0)
     else:
         logger.info("Purge aborted, exiting program")

@@ -5,8 +5,9 @@ from loguru import logger
 from IO_file import remove_db_file
 
 
-def read_header():
+def read_header() -> Tuple[float, float]:
     # reads hours overhang initial and hours overhang left
+    #returns 
     return
 
 
