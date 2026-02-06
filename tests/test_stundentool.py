@@ -15,13 +15,19 @@ def test_graduation_checker():
 
     assert graduation_checker(42.0) == None
     assert graduation_checker(42.25) == None
-    assert graduation_checker(0) == None
+    assert graduation_checker(0.0) == None
     assert graduation_checker(42.5) == None
     assert graduation_checker(42.75) == None
     assert graduation_checker(-1.75) == None
     assert graduation_checker(-0.75) == None
 
 
-"""def test_main():
-    with unittest.mock.patch("sys.argv","['42']"):
+
+
+"""def test_main_purge():
+    with unittest.mock.patch("sys.argv","['--purge']"):
         main()"""
+
+ os.remove(path, *, dir_fd=None)
+
+    Remove (delete) the file path. If path is a directory, an OSError is raised. Use rmdir() to remove directories. If the file does not exist, a FileNotFoundError is raised.

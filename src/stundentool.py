@@ -4,18 +4,6 @@ import argparse
 from loguru import logger
 
 
-def graduation_checker(value_to_check: float):
-    if not (isinstance(value_to_check, float)):
-        logger.error(f"Error handling hour input {value_to_check}: wrong input type")
-        raise TypeError("Error: input has wrong type, expected float ( 12.34 )")
-    elif not (value_to_check % 0.25 == 0):
-        logger.error(
-            f"Error handling hour input {value_to_check}: valid float but invalid graduated"
-        )
-        raise ValueError("Error: Value given is not chosen correctly")
-    else:
-        return
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -45,6 +33,11 @@ def main():
     else:
         logger.level("INFO")
 
+
+    if args.purge:
+        purge()
+
+        
     try:
         graduation_checker(args.hours)
     except Exception as e:
@@ -55,6 +48,33 @@ def main():
 
     # arguments: read, change, store, init
     return
+
+
+def graduation_checker(value_to_check: float):
+    if not (isinstance(value_to_check, float)):
+        logger.error(f"Error handling hour input {value_to_check}: wrong input type")
+        raise TypeError("Error: input has wrong type, expected float ( 12.34 )")
+    elif not (value_to_check % 0.25 == 0):
+        logger.error(
+            f"Error handling hour input {value_to_check}: valid float but invalid graduated"
+        )
+        raise ValueError("Error: Value given is not chosen correctly")
+    else:
+        return
+
+
+def purge():
+    logger.warning("WARNING: you ask for purging all data - data will be completly lost! Please confirm by typing y, any other character or string will abort: ")
+    input_data = input("prees y to continue, anything else to aboort:")
+    logger.debug("Input given: {input_data}")
+    if (input_data and input_data == len(input_data) * input_data[0] and input_data == "y"):
+        logger.info("Purging requested, starting routine deleting db")
+        delete_db()
+        sys.exit(0)
+    else:
+        logger.info("Purge aborted, exiting program")
+        sys.exit(0)
+
 
 
 if __name__ == "__main__":

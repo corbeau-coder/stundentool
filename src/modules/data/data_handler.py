@@ -1,11 +1,11 @@
+import sys
+
 from pydantic import BaseModel
 
 from loguru import logger
 
 import datetime as datetime
-
-
-
+from file.file_connector import is_initiated, purge_db
 
 
 class data_object(BaseModel):
@@ -24,32 +24,39 @@ class data_store(BaseModel):
     hours_overhang_initial: float
     hours_overhang_left: float
     entries_hours_surged: list
+    path: str
 
     def __init__(self, *args, **kwargs):
+        self.path = "stunden.db"
         hours_overhang_initial = kwargs.get("hours_initial", None)
         do_purge = kwargs.get("purge_db", False)
 
-        if not (isinstance(hours_overhang_initial, float)):
+        if not (isinstance(hours_overhang_initial, float) and not is_initiated(self.path)):
             logger.error(
                 "Error initializing database, argument for initial hour overhang is not from type float"
             )
             raise TypeError("wrong parameter type")
         elif do_purge:
-            try:
-                self.delete_db()
-            except FileNotFoundError as e:
-                logger.error("Error deleting db, file not found {e}")
-                raise e
-            except OSError as e:
-                logger.error("Error deleting db, IOError {e}")
-                raise e
+            self.delete_db()
+        
 
         self.hours_overhang_initial = hours_overhang_initial
         self.hours_overhang_left = hours_overhang_initial
+
         return
 
     def delete_db(self):
-        return
+        try:
+            purge_db(self.path)
+        except FileNotFoundError as e:
+            logger.error("Error deleting db, file not found {e}")
+            sys.exit(1)
+        except OSError as e:
+            logger.error("Error deleting db, IOError {e}")
+            sys.exit(1)
+            
+        sys.exit(0)
+        return 
 
     def add_item(self, hours: float):
         self.store_body(data_object(hours))

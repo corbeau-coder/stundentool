@@ -1,5 +1,8 @@
 import pydantic
+from typing import Tuple
 from data_handler import data_object
+from loguru import logger
+from IO_file import remove_db_file
 
 
 def read_header():
@@ -22,6 +25,10 @@ def read_body() -> list(data_object):
     return
 
 
-def is_initiated() -> bool:
+def is_initiated(path) -> bool:
     # check if db is present
     return False
+
+def purge_db(path) -> Tuple[bool, Exception]:
+    return remove_db_file(path)
+
