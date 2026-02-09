@@ -11,4 +11,7 @@ def remove_db_file(path) -> Tuple[bool, Exception]:
         return False,(e)
     else:
         logger.debug("DONE")
-        return True,None
+        return True, None
+    
+def db_initiated_check(path) -> bool:
+    return os.path.isfile(path)

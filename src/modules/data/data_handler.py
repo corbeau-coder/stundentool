@@ -29,23 +29,21 @@ class data_store(BaseModel):
     def __init__(self, *args, **kwargs):
         self.path = "stunden.db"
         hours_overhang_initial = kwargs.get("hours_initial", None)
-        do_purge = kwargs.get("purge_db", False)
+        init = kwargs.get("init", False)
         
-
-        if do_purge:
-            return
         if init:
-        elif is_initiated(self.path):
-            hours_overhang_initial, hours_overhang_left = read_header(self.path)
-        elif not (isinstance(hours_overhang_initial, float) and not is_initiated(self.path)):
-            logger.error(
-                "Error initializing database, argument for initial hour overhang is not from type float"
-            )
-            raise TypeError("wrong parameter type")
-             
+            if not (isinstance(hours_overhang_initial, float)):
+                logger.error(
+                    "Error initializing database, argument for initial hour overhang is not from type float"
+                )
+                raise TypeError("wrong parameter type")
+            else:
+                self.hours_overhang_initial = hours_overhang_initial
+                self.hours_overhang_left = hours_overhang_initial
+                self.store_header(self.hours_overhang_initial, self.hours_overhang_initial)
 
-        self.hours_overhang_initial = hours_overhang_initial
-        self.hours_overhang_left = hours_overhang_initial
+
+        
 
         return
 
@@ -83,7 +81,7 @@ class data_store(BaseModel):
         # write header (self.hours_overhang_inital, self.hours_overhang_left)
         return
 
-    def store_header(self):
+    def store_header(self, hours_initial: float, hours_left: float):
         # write header (self.hours_overhang_inital, self.hours_overhang_left)
         return
 
