@@ -40,7 +40,7 @@ class db_object:
                     if res.fetchone is None:
                         logger.error(f"ERROR executing SQL command\n{item}")
                         raise sqlite3.OperationalError
-                cursor.execute(f"INSERT INTO header ")
+                cursor.execute(f"INSERT INTO (value) header {hours_initial}")
         except sqlite3.OperationalError as e:
             logger.error(
                 f"ERROR connecting database and creating tables {self.path} {e}"
@@ -86,7 +86,7 @@ class db_object:
         return ret_data
 
     def write_one(self, data: data_object):
-        logger.info(f"Writing new item into database ...")
+        logger.info("Writing new item into database ...")
         sql_string = "INSERT INTO body (date, hours) VALUES (?,?)"
 
         try:
