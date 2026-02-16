@@ -1,11 +1,14 @@
 import sys
 import argparse
-from modules.data.data_handler import data_store
+from modules.data.store_handler import store_handler
 from loguru import logger
 
 
 
 def main():
+    path = "stundentool.db"
+
+
     parser = argparse.ArgumentParser(
         prog="stundentool",
         description="memorizing the hours scraped of off last years budget overhang",
@@ -27,10 +30,11 @@ def main():
         help="will purge the db and everything else - afterwards you have an fresh initiated instance of",
         action="store_true",
     )
-    parser.add_argument(
+    """parser.add_argument(
         "--recal", help="recalculate the hours scraped off", action="store_true"
-    )
+    )"""
     parser.add_argument("--verbose", action="store_true")
+    
 
     args = parser.parse_args()
     
@@ -42,7 +46,7 @@ def main():
 
 
     if args.purge:
-            storage = data_store()
+            storage = store_handler(path)
             purge(storage)
     elif args.init:
     

@@ -1,8 +1,9 @@
 import os
 from loguru import logger
 from typing import Tuple
+import sqlite3
 
-def remove_db_file(path) -> Tuple[bool, Exception]:
+def remove_db(path) -> Tuple[bool, Exception]:
     logger.debug("IO module deleting db at {path}")
     try:
         os.remove(path)

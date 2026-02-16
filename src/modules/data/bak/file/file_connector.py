@@ -2,7 +2,7 @@ import pydantic
 from typing import Tuple
 from data_handler import data_object
 from loguru import logger
-from IO_file import remove_db_file, db_initiated_check
+from IO_file import remove_db, db_initiated_check
 
 
 def read_header() -> Tuple[float, float]:
@@ -21,7 +21,7 @@ def read_body():
     return
 
 
-def read_body() -> list(data_object):
+def read_body() -> List(data_object):
     # reads the data entries scraping of time
     return
 
@@ -32,5 +32,5 @@ def is_initiated(path) -> bool:
     return False
 
 def purge_db(path) -> Tuple[bool, Exception]:
-    return remove_db_file(path)
+    return remove_db(path)
 

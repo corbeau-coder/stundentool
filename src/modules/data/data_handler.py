@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from loguru import logger
 
 import datetime as datetime
-from file.file_connector import is_initiated, purge_db, read_header
+import sqlite3
 
 
 class data_object(BaseModel):
@@ -20,7 +20,7 @@ class data_object(BaseModel):
         )
 
 
-class data_store(BaseModel):
+"""class data_store(BaseModel):
     hours_overhang_initial: float
     hours_overhang_left: float
     entries_hours_surged: list
@@ -109,4 +109,4 @@ class data_store(BaseModel):
         logger.debug("Calculating hours left {self.hours_overhang_left} {hours_delta}")
         self.hours_overhang_left = self.hours_overhang_left - float(hours_delta)
 
-        return
+        return"""
