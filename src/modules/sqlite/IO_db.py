@@ -52,19 +52,18 @@ class db_object:
 
     def read_all(self) -> List[data_object]:
         logger.info("Reading all items from database ...")
-        sql_factory_filler = "SELECT * FROM body"
         sql_string = "SELECT * FROM body"
 
         try:
             with sqlite3.connect(self.path) as conn:
                 cursor = conn.cursor()
-                cursor.execute(sql_factory_filler).fetchone()
+                res = cursor.execute(sql_string)
                 conn.row_factory = self.data_object_factory
-                res = cursor.execute(sql_string).fetchall()
+                ret_data = res.fetchall()
         except sqlite3.OperationalError as e:
             logger.error(f"Error {e} while executing sql_string {sql_string}")
-
-        return res
+            sys.exit(1)
+        return ret_data
 
     def read_one(self, id) -> data_object:
         logger.info(f"Reading item with ID {id} from database ...")
@@ -110,6 +109,20 @@ class db_object:
         else:
             logger.info(f"done.\nNew row added {cur_last_row_id} with data {data}")
             sys.exit(0)
+
+    def delete_one(self, id) -> bool:
+        logger.info(f"Deleting data item with ID {id}")
+        sql_string = f"DELETE FROM body WHERE ID = {id}"
+
+        try:
+            with sqlite3.connect(self.path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(sql_string)
+        except sqlite3.OperationalError as e:
+            logger.error(f"failed. Exception {e} occured while deleting row id {id}")
+            return False
+        logger.info(f"done.\nRow id {id} removed from dataset.")
+        return True
 
     def data_object_factory(cursor, row):
         fields = [column[0] for column in cursor.description]

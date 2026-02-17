@@ -20,4 +20,13 @@ class store_handler(BaseModel):
         return
     
     def read_all(self) -> List[data_object]:
-        self.db_obj.
+        return self.db_obj.read_all()
+    
+    def read_one(self, id) -> data_object:
+        return self.db_obj.read_one(id)
+    
+    def write_one(self, data: data_object):
+        return self.db_obj.write_one(data)
+    
+    def delete_one(self, id) -> bool:
+        return self.db_obj.delete_one(id)
