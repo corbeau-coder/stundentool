@@ -17,7 +17,7 @@ def main():
     )
 
     parser.add_argument(
-        "[hours.minutes]",
+        "time_value",
         type=float,
         help="time to scraped of the overhang budget. Schema HOURS.MINUTES - only 4 values are allowed for minutes: 00,25,50,75 reflecting that we usually round costs in 15 minute graduation"
     )
@@ -77,9 +77,9 @@ def main():
             #calc and print status
             sys.exit(0)
         case 2:
-            if args.hours is not None:
-                if (graduation_checker(args.hours)):
-                    new_data = data_object(args.hours)
+            if args.time_value is not None:
+                if (graduation_checker(args.time_value)):
+                    new_data = data_object(args.time_value)
                     storage.write_one(new_data)
                     sys.exit(0)
                 else:
@@ -88,15 +88,15 @@ def main():
                 logger.error("Error: empty hours.minutes argument, cannot add entry.")
                 sys.exit(0)
         case 4:
-            if args.hours is not None:
-                if (graduation_checker(args.hours)):
-                    storage.init(args.hours)
+            if args.time_value is not None:
+                if (graduation_checker(args.time_value)):
+                    storage.init(args.time_value)
                     #RETURN falsch, es wird nicht richtig auf exceptions reagiert
                     sys.exit(0)
                 else:
                     sys.exit(1)
 
-            storage.init(args.hours)
+            storage.init(args.time_value)
         case 8:
             purge(storage, path)
         case _:

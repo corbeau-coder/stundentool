@@ -29,8 +29,8 @@ class db_object:
     def init_db(self, hours_initial: float) -> Tuple[bool, str]:
         logger.info("Initating database ...")
         sql_strings = [
-            "CREATE TABLE header(ID int NOT NULL AUTO_INCREMENT, value float NOT NULL, PRIMARY KEY (ID))",
-            "CREATE TABLE body(ID, date DATE NOT NULL , hours float NOT NULL)",
+            "CREATE TABLE header (value float NOT NULL)",
+            "CREATE TABLE body (date DATE NOT NULL , hours float NOT NULL)",
         ]
         try:
             with sqlite3.connect(self.path) as conn:
@@ -40,11 +40,12 @@ class db_object:
                     if res.fetchone is None:
                         logger.error(f"ERROR executing SQL command\n{item}")
                         raise sqlite3.OperationalError
-                cursor.execute(f"INSERT INTO (value) header {hours_initial}")
+                cursor.execute("INSERT INTO header (value) VALUES (?)", (hours_initial,))
         except sqlite3.OperationalError as e:
             logger.error(
                 f"ERROR connecting database and creating tables {self.path} {e}"
             )
+            #TODO die Tabellen müssen gedropt werden
             return False, str(e)
 
         logger.info(" done.")
@@ -67,7 +68,7 @@ class db_object:
 
     def read_one(self, id) -> data_object:
         logger.info(f"Reading item with ID {id} from database ...")
-        sql_string = f"SELECT * FROM body WHERE ID is {id}"
+        sql_string = f"SELECT * FROM body WHERE ROWID is {id}"
 
         try:
             with sqlite3.connect(self.path) as conn:
@@ -112,7 +113,7 @@ class db_object:
 
     def delete_one(self, id) -> bool:
         logger.info(f"Deleting data item with ID {id}")
-        sql_string = f"DELETE FROM body WHERE ID = {id}"
+        sql_string = f"DELETE FROM body WHERE ROWID = {id}"
 
         try:
             with sqlite3.connect(self.path) as conn:
