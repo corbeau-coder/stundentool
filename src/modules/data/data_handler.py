@@ -1,19 +1,14 @@
-import sys
-
-from pydantic import BaseModel
 
 from loguru import logger
 
-import datetime as datetime
-import sqlite3
+from datetime import datetime
 
-
-class data_object(BaseModel):
-    timestamp: datetime.datetime
+class data_object():
+    timestamp: datetime
     hours: float
 
     def __init__(self, hours: float):
-        self.timestamp = datetime.datetime.now()
+        self.timestamp = datetime.now()
         self.hours = hours
         logger.debug(
             "Created data object with following variable values:\nttimestamp: {self.timestamp}\nhours: {self.hours}\n"

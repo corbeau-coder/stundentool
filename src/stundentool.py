@@ -67,9 +67,6 @@ def main():
 
 
 
-    #scheme:
-    #purge | init | add | status
-
     routing_value = args.purge << 3 | args.init << 2 | args.add << 1 | args.status
     logger.debug(f"Routing value is {routing_value}")
     match routing_value:
