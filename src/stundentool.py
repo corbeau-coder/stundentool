@@ -2,6 +2,7 @@ import sys
 import argparse
 from modules.data.store_handler import store_handler
 from loguru import logger
+from modules.data.data_handler import data_object
 
 
 
@@ -18,7 +19,7 @@ def main():
     parser.add_argument(
         "[hours.minutes]",
         type=float,
-        help="time to scraped of the overhang budget. Schema HOURS.MINUTES - only 4 values are allowed for minutes: 00,25,50,75 reflecting that we usually round costs in 15 minute graduation",
+        help="time to scraped of the overhang budget. Schema HOURS.MINUTES - only 4 values are allowed for minutes: 00,25,50,75 reflecting that we usually round costs in 15 minute graduation"
     )
     parser.add_argument(
         "--init",
@@ -55,8 +56,10 @@ def main():
 
     if args.verbose:
         logger.level("DEBUG")
+        logger.debug("Verbose logging configured")
     else:
         logger.level("INFO")
+        logger.debug("Normal logging configured")
 
     logger.debug("Loading DB and checking state...")
     storage = store_handler(path)
@@ -68,22 +71,32 @@ def main():
     #purge | init | add | status
 
     routing_value = args.purge << 3 | args.init << 2 | args.add << 1 | args.status
+    logger.debug(f"Routing value is {routing_value}")
     match routing_value:
         case 1:
             #calc and print status
             sys.exit(0)
         case 2:
             if args.hours is not None:
-                try:
-                    graduation_checker(args.hours)
-                except Exception as e:
-                    logger.error(f"Error: failed initiating the data object\ninput value: {args.hours} \nException {str(e)}")
+                if (graduation_checker(args.hours)):
+                    new_data = data_object(args.hours)
+                    storage.write_one(new_data)
                     sys.exit(0)
+                else:
+                    sys.exit(1)
             else:
                 logger.error("Error: empty hours.minutes argument, cannot add entry.")
                 sys.exit(0)
         case 4:
-            #init
+            if args.hours is not None:
+                if (graduation_checker(args.hours)):
+                    storage.init(args.hours)
+                    #RETURN falsch, es wird nicht richtig auf exceptions reagiert
+                    sys.exit(0)
+                else:
+                    sys.exit(1)
+
+            storage.init(args.hours)
         case 8:
             purge(storage, path)
         case _:
@@ -97,17 +110,17 @@ def main():
     return
 
 
-def graduation_checker(value_to_check: float):
+def graduation_checker(value_to_check: float) -> bool:
     if not (isinstance(value_to_check, float)):
-        logger.error(f"Error handling hour input {value_to_check}: wrong input type")
-        raise TypeError("Error: input has wrong type, expected float ( 12.34 )")
+        logger.error(f"Error handling hour input {value_to_check}: wrong input type, expected float ( 12.34 )")
+        return False
     elif not (value_to_check % 0.25 == 0):
         logger.error(
             f"Error handling hour input {value_to_check}: valid float but invalid graduated"
         )
-        raise ValueError("Error: Value given is not chosen correctly")
+        return False
     else:
-        return
+        return True
 
 
 def purge(storage: store_handler, path):

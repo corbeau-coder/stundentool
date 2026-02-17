@@ -1,11 +1,10 @@
 from loguru import logger
-from pydantic import BaseModel
 from modules.sqlite.IO_db import db_object
 from typing import Tuple, List
 from modules.data.data_handler import data_object
 
 
-class store_handler(BaseModel):
+class store_handler():
     def __init__(self, path):
         self.db_obj = db_object(path)
 
