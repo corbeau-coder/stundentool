@@ -58,7 +58,7 @@ def main():
         logger.level("DEBUG")
         logger.debug("Verbose logging configured")
     else:
-        logger.level("DEBUG")
+        logger.level("INFO")
         logger.debug("Normal logging configured")
 
     logger.debug("Loading DB and checking state...")

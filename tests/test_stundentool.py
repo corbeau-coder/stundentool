@@ -37,6 +37,7 @@ def test_purge(monkeypatch):
     #test cases: y w file, n, y w/o file
     storage = Mock()
     storage.db_status = True
+    storage.purge.return_value = (False, str(FileNotFoundError))
     monkeypatch.setattr("builtins.input", lambda _: "y")
     monkeypatch.setattr("sys.exit", fake_exit)
     with patch("src.stundentool.logger") as logger_mock:
@@ -48,8 +49,6 @@ def test_purge(monkeypatch):
         logger_mock.info.assert_any_call(
             "Purging requested, starting routine deleting db"
         )
-        for call in logger_mock.warning.call_args_list:
-            print('Geloggt:', call)
         #logger_mock.debug.assert_any_call("FAILED: [WinError 2] Das System kann die angegebene Datei nicht finden: 'test.db'")
 
 
