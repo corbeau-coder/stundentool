@@ -58,7 +58,7 @@ def main():
         logger.level("DEBUG")
         logger.debug("Verbose logging configured")
     else:
-        logger.level("INFO")
+        logger.level("DEBUG")
         logger.debug("Normal logging configured")
 
     logger.debug("Loading DB and checking state...")
@@ -101,9 +101,6 @@ def main():
             sys.exit(0)
 
         
-    
-
-    # arguments: read, change, store, init
     return
 
 
@@ -124,10 +121,12 @@ def purge(storage: store_handler, path):
     if(storage.db_status):
         logger.warning("WARNING: you ask for purging all data - data will be completly lost! Please confirm by typing y, any other character or string will abort: ")
         input_data = input("prees y to continue, anything else to aboort:")
-        logger.debug("Input given: {input_data}")
+        logger.debug(f"Input given: {input_data}")
         if (input_data and input_data == len(input_data) * input_data[0] and input_data == "y"):
             logger.info("Purging requested, starting routine deleting db")
-            storage.purge(path)
+            ret, e_str = storage.purge(path)
+            if not ret:
+                logger.warning(f"warning: during db removal error occured: {e_str}")
             logger.info("done. Please use --init [hours.minutes] to re-initiate the program")
             sys.exit(0)
         else:
@@ -135,7 +134,9 @@ def purge(storage: store_handler, path):
             sys.exit(0)
     else:
         logger.info("Purging requested, starting routine deleting db")
-        storage.purge(path)
+        ret, e_str = storage.purge(path)
+        if not ret:
+            logger.warning(f"warning: during db removal error occured: {e_str}")
         logger.info("done. Please use --init [hours.minutes] to re-initiate the program")
         sys.exit(0)
 

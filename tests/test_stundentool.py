@@ -1,7 +1,8 @@
 import pytest
 
+from unittest.mock import Mock, patch
 
-from src.stundentool import main, graduation_checker
+from src.stundentool import graduation_checker, purge
 
 
 def test_graduation_checker():
@@ -29,6 +30,27 @@ def test_graduation_checker():
     for item in test_data_true:
        assert graduation_checker(item) == True
 
+def fake_exit(code):
+    raise SystemExit(code)
+
+def test_purge(monkeypatch):
+    #test cases: y w file, n, y w/o file
+    storage = Mock()
+    storage.db_status = True
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+    monkeypatch.setattr("sys.exit", fake_exit)
+    with patch("src.stundentool.logger") as logger_mock:
+        # Erwartet, dass SystemExit geworfen wird
+        with pytest.raises(SystemExit) as exc:
+            purge(storage, "test.db")
+        assert exc.value.code == 0                 # Korrektes Beenden
+        storage.purge.assert_called_once_with("test.db") # Wurde einmal aufgerufen             
+        logger_mock.info.assert_any_call(
+            "Purging requested, starting routine deleting db"
+        )
+        for call in logger_mock.warning.call_args_list:
+            print('Geloggt:', call)
+        #logger_mock.debug.assert_any_call("FAILED: [WinError 2] Das System kann die angegebene Datei nicht finden: 'test.db'")
 
 
 

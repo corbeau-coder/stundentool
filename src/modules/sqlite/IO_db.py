@@ -19,7 +19,7 @@ class db_object:
         logger.debug(f"IO module deleting db at {self.path}")
         try:
             os.remove(self.path)
-        except Exception as e:
+        except FileNotFoundError as e:
             logger.debug(f"FAILED: {e}")
             return False, str(e)
         else:
