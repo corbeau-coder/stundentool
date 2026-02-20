@@ -29,3 +29,13 @@ class store_handler():
     
     def delete_one(self, id) -> bool:
         return self.db_obj.delete_one(id)
+    
+    def read_header(self) -> float:
+        return self.db_obj.hours_initiated
+    
+    def calc(self, data_items: List[data_object]) -> Tuple[float, float]:
+        hours_sum = 0
+        for item in data_items:
+            hours_sum += item.hours
+        return self.read_header(), hours_sum
+        

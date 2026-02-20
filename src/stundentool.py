@@ -19,7 +19,8 @@ def main():
     parser.add_argument(
         "time_value",
         type=float,
-        help="time to scraped of the overhang budget. Schema HOURS.MINUTES - only 4 values are allowed for minutes: 00,25,50,75 reflecting that we usually round costs in 15 minute graduation"
+        help="time to scraped of the overhang budget. Schema HOURS.MINUTES - only 4 values are allowed for minutes: 00,25,50,75 reflecting that we usually round costs in 15 minute graduation",
+        nargs='?'
     )
     parser.add_argument(
         "--init",
@@ -71,7 +72,7 @@ def main():
     logger.debug(f"Routing value is {routing_value}")
     match routing_value:
         case 1:
-            #calc and print status
+            printout(storage, args.verbose)         
             sys.exit(0)
         case 2:
             if args.time_value is not None:
@@ -139,6 +140,16 @@ def purge(storage: store_handler, path):
             logger.warning(f"warning: during db removal error occured: {e_str}")
         logger.info("done. Please use --init [hours.minutes] to re-initiate the program")
         sys.exit(0)
+
+
+def printout(storage: store_handler, verbose: bool) -> None:
+    if (verbose):
+        #TODO: Verbose output including stats
+        logger.info("TODO")
+    else:
+        initial, reduced = storage.calc(storage.read_all())
+        logger.info(f"hours initial: {initial}\nhours reduced already: {reduced}\n\nhours left: {initial - reduced}\n\nuse --verbose parameter additionally for more stats")
+    return
 
 
 

@@ -11,7 +11,7 @@ class data_object():
         self.timestamp = datetime.now()
         self.hours = hours
         logger.debug(
-            "Created data object with following variable values:\nttimestamp: {self.timestamp}\nhours: {self.hours}\n"
+            f"Created data object with following variable values:\ntimestamp: {self.timestamp}\nhours: {self.hours}\n"
         )
 
 
