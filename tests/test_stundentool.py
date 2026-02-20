@@ -27,10 +27,10 @@ def test_graduation_checker():
     ]
     
     for item in test_data_false:
-        assert graduation_checker(item) == False
+        assert not graduation_checker(item)
 
     for item in test_data_true:
-       assert graduation_checker(item) == True
+       assert graduation_checker(item)
 
 def fake_exit(code):
     raise SystemExit(code)
@@ -55,9 +55,29 @@ def test_purge(monkeypatch):
             )
 
 def test_main_routing(monkeypatch):
-    monkeypatch.setattr("sys", "argv", ["--init 42"])
+    monkeypatch.setattr("sys.argv", ["stundentool.py", "--verbose", "--init", "42"])
     monkeypatch.setattr("sys.exit", fake_exit)
-    main.storage = Mock
+    
+
+    with patch("src.stundentool.logger") as logger_mock, \
+        patch("src.stundentool.store_handler") as mock_store_handler:
+        mock_storage = Mock()
+        mock_storage.db_status = False
+        mock_storage.purge.return_value = (True, "")
+        mock_store_handler.return_value = mock_storage
+
+        with pytest.raises(SystemExit) as exc:
+            main()
+
+        assert exc.value.code == 0
+        logger_mock.info.assert_any_call(
+            "Verbose logging configured"
+        )
+        logger_mock.debug.assert_any_call(
+            "Routing value is 4"
+        )
+        
+
 
 
 
