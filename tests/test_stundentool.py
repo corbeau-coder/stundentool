@@ -2,6 +2,8 @@ import pytest
 
 from unittest.mock import Mock, patch
 
+from src.modules.data.store_handler import store_handler
+
 from src.stundentool import graduation_checker, purge
 
 
@@ -34,22 +36,23 @@ def fake_exit(code):
     raise SystemExit(code)
 
 def test_purge(monkeypatch):
-    #test cases: y w file, n, y w/o file
-    storage = Mock()
-    storage.db_status = True
-    storage.purge.return_value = (False, str(FileNotFoundError))
-    monkeypatch.setattr("builtins.input", lambda _: "y")
-    monkeypatch.setattr("sys.exit", fake_exit)
-    with patch("src.stundentool.logger") as logger_mock:
-        # Erwartet, dass SystemExit geworfen wird
-        with pytest.raises(SystemExit) as exc:
-            purge(storage, "test.db")
-        assert exc.value.code == 0                 # Korrektes Beenden
-        storage.purge.assert_called_once_with("test.db") # Wurde einmal aufgerufen             
-        logger_mock.info.assert_any_call(
-            "Purging requested, starting routine deleting db"
-        )
-        #logger_mock.debug.assert_any_call("FAILED: [WinError 2] Das System kann die angegebene Datei nicht finden: 'test.db'")
+    storage = store_handler("test.db")
+    with patch("os.path.isfile") as mock_isfile, patch("os.remove") as mock_remove:
+        mock_isfile.return_value = True
+        mock_remove.side_effect = FileNotFoundError
+        monkeypatch.setattr("builtins.input", lambda _: "y")
+        monkeypatch.setattr("sys.exit", fake_exit)
+        with patch("src.stundentool.logger") as logger_mock:
+            with pytest.raises(SystemExit) as exc, pytest.raises(FileNotFoundError) as fexc:
+                purge(storage, "test.db")
+            assert exc.value.code == 0                 # Korrektes Beenden
+            #storage.purge.assert_called_once_with("test.db") # Wurde einmal aufgerufen             
+            logger_mock.info.assert_any_call(
+                "Purging requested, starting routine deleting db"
+            )
+            logger_mock.info.assert_any_call(
+                "done. Please use --init [hours.minutes] to re-initiate the program"
+            )
 
 
 
