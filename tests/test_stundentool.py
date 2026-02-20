@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 from src.modules.data.store_handler import store_handler
 
-from src.stundentool import graduation_checker, purge
+from src.stundentool import graduation_checker, purge, main
 
 
 def test_graduation_checker():
@@ -53,6 +53,12 @@ def test_purge(monkeypatch):
             logger_mock.info.assert_any_call(
                 "done. Please use --init [hours.minutes] to re-initiate the program"
             )
+
+def test_main_routing(monkeypatch):
+    monkeypatch.setattr("sys", "argv", ["--init 42"])
+    monkeypatch.setattr("sys.exit", fake_exit)
+    main.storage = Mock
+
 
 
 
