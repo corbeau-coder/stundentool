@@ -34,9 +34,10 @@ def test_purge(monkeypatch):
             with (
                 pytest.raises(SystemExit) as exc,
                 pytest.raises(FileNotFoundError) as fexc,
+                #TODO filenotfound testing
             ):
                 purge(storage, "test.db")
-            assert exc.value.code == 0  # Korrektes Beenden
+            assert exc.value.code == 0
             logger_mock.info.assert_any_call(
                 "Purging requested, starting routine deleting db"
             )
