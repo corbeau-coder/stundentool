@@ -46,9 +46,6 @@ def main():
         action="store_true",
         default=False
     )
-    """parser.add_argument(
-        "--recal", help="recalculate the hours scraped off", action="store_true"
-    )"""
     parser.add_argument("--verbose", action="store_true")
     
 
@@ -84,7 +81,7 @@ def main():
                     sys.exit(1)
             else:
                 logger.error("Error: empty hours.minutes argument, cannot add entry.")
-                sys.exit(0)
+                sys.exit(1)
         case 4:
             if args.time_value is not None:
                 if (graduation_checker(args.time_value)):
@@ -99,7 +96,7 @@ def main():
             purge(storage, path)
         case _:
             logger.error("Error: check parameter set used - do not combine purge, init, status or add as parameters")
-            sys.exit(0)
+            sys.exit(1)
 
         
     return

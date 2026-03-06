@@ -6,17 +6,25 @@ from src.modules.data.store_handler import store_handler
 
 from src.stundentool import graduation_checker, purge, main
 
-
-def test_graduation_checker():
-    test_data_true = [42.0, 42.25, 0.0, 42.5, 42.75, -1.75, -0.75]
-
-    test_data_false = [1, "a", None, 42.7, 0.2]
-
-    for item in test_data_false:
-        assert not graduation_checker(item)
-
-    for item in test_data_true:
-        assert graduation_checker(item)
+@pytest.mark.parametrize(
+    "a,exp_return",         
+    [
+        (42.0, True),
+        (42.25, True),
+        (0.0, True),
+        (42.5, True),
+        (42.75, True),
+        (-1.75, True),
+        (-0.75, True),
+        (1, False),
+        ("a", False),
+        (None, False),
+        (42.7, False),
+        (0.2, False),
+    ]
+)
+def test_graduation_checker(a, exp_return):
+    assert graduation_checker(a) == exp_return
 
 
 def fake_exit(code):
@@ -45,10 +53,38 @@ def test_purge(monkeypatch):
                 "done. Please use --init [hours.minutes] to re-initiate the program"
             )
 
+@pytest.mark.parametrize(
+    "args, exp_exit, exp_msg",
+    [
+        (["stundentool.py"], 1, "Error: check parameter set used - do not combine purge, init, status or add as parameters"),
+        (["stundentool.py","--add"], 1, "Error: empty hours.minutes argument, cannot add entry."),
+        (["stundentool.py","--init", "--purge"], 1, "Error: check parameter set used - do not combine purge, init, status or add as parameters"),
+        (["stundentool.py", "--init", "--status"], 1, "Error: check parameter set used - do not combine purge, init, status or add as parameters"),
+        (["stundentool.py", "--purge", "--status"], 1, "Error: check parameter set used - do not combine purge, init, status or add as parameters"),
+        (["stundentool.py", "--add", "--purge", "--status"], 1, "Error: check parameter set used - do not combine purge, init, status or add as parameters"),
+        (["stundentool.py", "--add", "--init", "--status"], 1, "Error: check parameter set used - do not combine purge, init, status or add as parameters"),
+        (["stundentool.py", "--add", "--init", "--purge"], 1, "Error: check parameter set used - do not combine purge, init, status or add as parameters"),
+        (["stundentool.py", "--add", "--init", "--status", "--purge"], 1, "Error: check parameter set used - do not combine purge, init, status or add as parameters"),
+    ]
+)
+def test_main_routing_parameterized(monkeypatch, args, exp_exit, exp_msg):
+    monkeypatch.setattr("sys.exit", fake_exit)
+    with (patch("src.stundentool.logger") as logger_mock,
+          patch("src.stundentool.store_handler") as store_handler_mock):
+        monkeypatch.setattr("sys.argv", args)
+        storage_mock = Mock()
+        storage_mock.db_status.return_value = True
+        store_handler_mock.return_value = storage_mock
+
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == exp_exit
+        logger_mock.error.assert_any_call(exp_msg)
+        
 
 def test_main_routing(monkeypatch):
     monkeypatch.setattr("sys.exit", fake_exit)
-
+     
     # routing 1, status
     with (
         patch("src.stundentool.logger") as logger_mock,
