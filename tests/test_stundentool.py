@@ -77,7 +77,7 @@ def test_main_routing_parameterized(monkeypatch, args, exp_exit, exp_msg):
         store_handler_mock.return_value = storage_mock
 
         with pytest.raises(SystemExit) as exc:
-            main()
+            main("stundentool.db")
         assert exc.value.code == exp_exit
         logger_mock.error.assert_any_call(exp_msg)
         
@@ -96,7 +96,7 @@ def test_main_routing(monkeypatch):
         store_handler_mock.return_value = storage_mock
 
         with pytest.raises(SystemExit) as exc:
-            main()
+            main("stundentool.db")
 
         assert exc.value.code == 0
         logger_mock.info.assert_any_call("TODO")
@@ -105,7 +105,7 @@ def test_main_routing(monkeypatch):
         monkeypatch.setattr("sys.argv", ["stundentool.py", "--status"])
 
         with pytest.raises(SystemExit) as exc:
-            main()
+            main("stundentool.db")
 
         assert exc.value.code == 0
         logger_mock.info.assert_any_call(
@@ -122,7 +122,7 @@ def test_main_routing(monkeypatch):
         store_handler_mock.return_value = storage_mock
 
         with pytest.raises(SystemExit) as exc:
-            main()
+            main("stundentool.db")
 
         assert exc.value.code == 0
         storage_mock.write_one.assert_called_once()
@@ -138,7 +138,7 @@ def test_main_routing(monkeypatch):
         store_handler_mock.return_value = storage_mock
 
         with pytest.raises(SystemExit) as exc:
-            main()
+            main("stundentool.db")
 
         assert exc.value.code == 0
         logger_mock.info.assert_any_call("Verbose logging configured")
@@ -157,7 +157,7 @@ def test_main_routing(monkeypatch):
         store_handler_mock.return_value = storage_mock
 
         with pytest.raises(SystemExit) as exc:
-            main()
+            main("stundentool.db")
 
         assert exc.value.code == 0
         logger_mock.info.assert_any_call("Purging requested, starting routine deleting db")

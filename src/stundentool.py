@@ -6,8 +6,8 @@ from modules.data.data_handler import data_object
 
 
 
-def main():
-    path = "stundentool.db"
+def main(path):
+    
 
 
     parser = argparse.ArgumentParser(
@@ -60,7 +60,11 @@ def main():
         logger.info("Normal logging configured")
 
     logger.debug("Loading DB and checking state...")
-    storage = store_handler(path)
+    if path is None:
+        logger.debug("DB path missing, exiting application")
+        sys.exit(1)
+    else:
+        storage = store_handler(path)
     logger.debug(f" DB check returns {storage.db_status}. done")
 
 
@@ -151,4 +155,5 @@ def printout(storage: store_handler, verbose: bool) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    path = "stundentool.db"
+    main(path)
