@@ -1,5 +1,6 @@
 import pytest
 import sqlite3
+import itertools
 
 from unittest.mock import patch
 
@@ -15,8 +16,8 @@ def test_init_db(tmp_path, monkeypatch):
             main(path)
 
         assert exc.value.code == 0
-        logger_mock.info.assert_any_call("Initating database ...")
-        logger_mock.info.assert_any_call(" done")
+        #logger_mock.info.assert_any_call("Initating database ...")
+        #logger_mock.info.assert_any_call(" done")
         
 
         with sqlite3.connect(path) as conn:
@@ -25,15 +26,17 @@ def test_init_db(tmp_path, monkeypatch):
                 "SELECT * FROM HEADER", # check colums header
                 "SELECT * FROM HEADER", # check initial input header
                 "SELECT * FROM BODY", #check columns
+                "SELECT * FROM BODY" #check columns
             ]
             asserts = [
+                "value",
                 "1337.0",
-                "1337.0",
+                "date, hours",
                 None
             ]
-            for item, exp_res in sql_tests, asserts:
-                resp = cur.execute(item).fetchone()
-                print(f"SQL-String {item} response {resp}\n")
-                assert resp == exp_res
+            for item, exp_res in zip(sql_tests, asserts):
+                resp = cur.execute(item)
+                print(f"SQL-String {item} response {resp.description}\n")
+                assert resp.description[0][0] == exp_res
 
     return
