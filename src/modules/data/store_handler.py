@@ -1,4 +1,3 @@
-from loguru import logger
 from src.modules.sqlite.db_handler import db_object
 from typing import Tuple, List
 from modules.data.data_handler import data_object
