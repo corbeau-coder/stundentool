@@ -1,7 +1,4 @@
 from loguru import logger
-import os
-import sys
-import sqlite3
 from typing import Tuple, List
 from modules.data.data_handler import data_object
 from modules.sqlite.io import ConnectionHandler
@@ -22,7 +19,7 @@ class db_object:
             self._con_handle = ConnectionHandler(self._path)
             self._db_file_present = self._con_handle.db_file_present
             if not self._db_file_present:
-                logger.warning(f"WARN: with db file not present")
+                logger.warning("WARN: db file not present")
             else:
                 self._conn = self._con_handle.GetConnection()
                 self._db_handle = DatabaseHandler(self._conn)
@@ -30,8 +27,11 @@ class db_object:
             return
 
     def purge_db(self) -> Tuple[bool, str]:
-        self._con_handle.CloseConnection()
-        return self._con_handle.purge_db()
+        if self._db_file_present:
+            self._con_handle.CloseConnection()
+            return self._con_handle.purge_db()
+        else:
+            return False, "db file not present"
 
     def init_db(self, hours_initial: float) -> Tuple[bool, str]:
         if not self._db_file_present:
@@ -42,12 +42,29 @@ class db_object:
         return self._db_handle.init_db(hours_initial)
         
     def read_all(self) -> List[data_object]:
+        if self._db_file_present & self._db_initiated:
+            return self._db_handle.read_all()
+        else:
+            logger.error("db not ready")
+            return
         
     def read_one(self, id) -> data_object:
-        
+        if self._db_file_present & self._db_initiated:
+            return self._db_handle.read_one(id)
+        else:
+            logger.error("db not ready")
+            return
 
     def write_one(self, data: data_object):
-        
+        if self._db_file_present & self._db_initiated:
+            return self._db_handle.write_one(data)
+        else:
+            logger.error("db not ready")
+            return
 
     def delete_one(self, id) -> bool:
-        
+        if self._db_file_present & self._db_initiated:
+            return self._db_handle.delete_one(id)
+        else:
+            logger.error("db not ready")
+            return False
