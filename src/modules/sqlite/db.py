@@ -2,32 +2,33 @@ from loguru import logger
 import os
 import sys
 import sqlite3
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 from modules.data.data_handler import data_object
 
 
-class db_object:
-    def __init__(self, path):
-        self.path = path
-        if not os.path.isfile(self.path):
-            logger.debug(f"DB path is not a file {self.path}")
-            self.db_exists = False
-        else:
-            sql_string = "SELECT value FROM header"
-            try:
-                with sqlite3.connect(self.path) as conn:
-                    ret = conn.cursor().execute(sql_string).fetchone()
-                    if ret is not None:
-                        self.hours_initiated = ret
-                        self.db_exists = True
-                    else:
-                        self.db_exists = False
-                        logger.error("Error reading db, missing initialization, probably purge and init again")
-                        sys.exit(1)
-            except sqlite3.OperationalError as e:
-                logger.error(f"Error initializing db, file physical present but on I/O to db hit exception {e}")
-                sys.exit(1)
+class DatabaseHandler:
+    def __init__(self, conn):
+        self.db_initiated = False
+        self._conn = None
 
+        if conn is None:
+            logger.error(f"Aborting initialization, conn variable is None {conn}")
+            sys.exit(1)
+        else:
+            self._conn = conn
+            try:
+                resp = self._conn.cursor().execute("SELECT value FROM header")
+                if (sum(1 for e in resp)) == 1:
+                    self.db_initiated = True
+                else:
+                    logger.debug(
+                        f"DB not properly initiated. Expected one row in header table, got this response: {resp}"
+                    )
+                    self.db_initiated = False
+            except sqlite3.OperationalError as e:
+                self.db_initiated = False
+                logger.debug(f"DB connection cannot be established - Exception {e}")
+                sys.exit(1)
 
     def init_db(self, hours_initial: float) -> Tuple[bool, str]:
         logger.info("Initating database ...")
@@ -35,60 +36,74 @@ class db_object:
             "CREATE TABLE header (value float NOT NULL)",
             "CREATE TABLE body (date DATE NOT NULL , hours float NOT NULL)",
         ]
-        try:
-            with sqlite3.connect(self.path) as conn:
-                cursor = conn.cursor()
+        if self._conn is None:
+            logger.debug("Aborting init, _conn is None")
+            return (False, "database connection is None, aborting.")
+
+        if self.db_initiated:
+            logger.debug("Aborting init, db_initiated is True")
+            return (
+                False,
+                "Database already initiated, aborting. Use purge function first if you want to reset database",
+            )
+        else:
+            try:
+                cursor = self._conn.cursor()
                 for item in sql_strings:
                     res = cursor.execute(item)
                     if res.fetchone is None:
                         logger.error(f"ERROR executing SQL command\n{item}")
                         raise sqlite3.OperationalError
-                cursor.execute("INSERT INTO header (value) VALUES (?)", (hours_initial,))
-        except sqlite3.OperationalError as e:
-            logger.error(
-                f"ERROR connecting database and creating tables {self.path} {e}"
-            )
-            #TODO die Tabellen müssen gedropt werden
-            return False, str(e)
+                cursor.execute(
+                    "INSERT INTO header (value) VALUES (?)", (hours_initial,)
+                )
+                self._conn.commit()
+            except sqlite3.OperationalError as e:
+                logger.error(f"ERROR connecting database and creating tables {e}")
+                return False, str(e)
 
-        self.hours_initiated = hours_initial
-        logger.info(" done.")
-        return True, ""
+            logger.info(" done.")
+            return True, ""
 
-    def read_all(self) -> List[data_object]:
+    def read_all(self) -> Optional[List[data_object]]:
         logger.info("Reading all items from database ...")
         sql_string = "SELECT * FROM body"
 
-        try:
-            with sqlite3.connect(self.path) as conn:
-                cursor = conn.cursor()
+        if not self.HealthCheck():
+            return None
+        else:
+            try:            
+                cursor = self._conn.cursor()
                 res = cursor.execute(sql_string)
-                conn.row_factory = self.data_object_factory
+                self._conn.row_factory = self.data_object_factory
                 ret_data = res.fetchall()
-        except sqlite3.OperationalError as e:
-            logger.error(f"Error {e} while executing sql_string {sql_string}")
-            sys.exit(1)
-        return ret_data
+            except sqlite3.OperationalError as e:
+                logger.error(f"Error {e} while executing sql_string {sql_string}")
+                sys.exit(1)
+            return ret_data
 
-    def read_one(self, id) -> data_object:
+    def read_one(self, id) -> Optional[data_object]:
         logger.info(f"Reading item with ID {id} from database ...")
         sql_string = f"SELECT * FROM body WHERE ROWID is {id}"
 
-        try:
-            with sqlite3.connect(self.path) as conn:
-                cursor = conn.cursor()
+        if not self.HealthCheck():
+            return None
+        else:
+            try:
+                cursor = self._conn.cursor()
                 res = cursor.execute(sql_string)
-                conn.row_factory = self.data_object_factory
+                self._conn.row_factory = self.data_object_factory
                 ret_data = res.fetchone()
-                if (ret_data is None):
+                if ret_data is None:
                     logger.error(f"cannot read item with id {id}")
                     sys.exit(1)
-        except sqlite3.OperationalError as e:
-            logger.error(f"failed\nError {e} while executing sql_string {sql_string}")
+                else:
+                    logger.info("done")
+                    return ret_data
+            except sqlite3.OperationalError as e:
+                logger.error(f"failed\nError {e} while executing sql_string {sql_string}")
 
-        logger.info("done")
-        return ret_data
-
+            
     def write_one(self, data: data_object):
         logger.info("Writing new item into database ...")
         sql_string = "INSERT INTO body (date, hours) VALUES (?,?)"
@@ -132,3 +147,16 @@ class db_object:
     def data_object_factory(cursor, row):
         fields = [column[0] for column in cursor.description]
         return data_object(**{k: v for k, v in zip(fields, row)})
+    
+    def HealthCheck(self) -> bool:
+        if self._conn is None:
+            logger.info("FAILED")
+            logger.debug("Aborting, _conn is None")
+            return False
+        
+        if not self.db_initiated:
+            logger.info("FAILED")
+            logger.debug("Aborting, DB not initiated")
+            return False
+        
+        return True
