@@ -92,7 +92,7 @@ class DatabaseHandler:
             try:
                 cursor = self._conn.cursor()
                 res = cursor.execute(sql_string)
-                self._conn.row_factory = self.data_object_factory
+                self._conn.row_factory = self.data_object_factory(cursor)
                 ret_data = res.fetchone()
                 if ret_data is None:
                     logger.error(f"cannot read item with id {id}")
@@ -108,41 +108,45 @@ class DatabaseHandler:
         logger.info("Writing new item into database ...")
         sql_string = "INSERT INTO body (date, hours) VALUES (?,?)"
 
-        try:
-            with sqlite3.connect(self.path) as conn:
-                cursor = conn.cursor()
+        if not self.HealthCheck():
+            return
+        else:
+            try:   
+                cursor = self._conn.cursor()
                 last_row_id = cursor.lastrowid
                 if last_row_id is None:
                     last_row_id = 0
                 cursor.execute(sql_string, (data.timestamp, data.hours))
-                conn.commit()
-        except sqlite3.OperationalError as e:
-            logger.error(f"failed. Exception {e}")
-            sys.exit(1)
+                self._conn.commit()
+            except sqlite3.OperationalError as e:
+                logger.error(f"failed. Exception {e}")
+                sys.exit(1)
 
-        cur_last_row_id = cursor.lastrowid
-        if cur_last_row_id is None or (cur_last_row_id <= last_row_id):
-            logger.error(
-                f"failed. last row ids identical before and after insert: {last_row_id} {cur_last_row_id}"
-            )
-            sys.exit(1)
-        else:
-            logger.info(f"done.\nNew row added {cur_last_row_id} with data {data}")
-            sys.exit(0)
+            cur_last_row_id = cursor.lastrowid
+            if cur_last_row_id is None or (cur_last_row_id <= last_row_id):
+                logger.error(
+                    f"failed. last row ids identical before and after insert: {last_row_id} {cur_last_row_id}"
+                )
+                sys.exit(1)
+            else:
+                logger.info(f"done.\nNew row added {cur_last_row_id} with data {data}")
+                sys.exit(0)
 
     def delete_one(self, id) -> bool:
         logger.info(f"Deleting data item with ID {id}")
         sql_string = f"DELETE FROM body WHERE ROWID = {id}"
 
-        try:
-            with sqlite3.connect(self.path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(sql_string)
-        except sqlite3.OperationalError as e:
-            logger.error(f"failed. Exception {e} occured while deleting row id {id}")
+        if not self.HealthCheck():
             return False
-        logger.info(f"done.\nRow id {id} removed from dataset.")
-        return True
+        else:
+            try:        
+                cursor = self._conn.cursor()
+                cursor.execute(sql_string)
+            except sqlite3.OperationalError as e:
+                logger.error(f"failed. Exception {e} occured while deleting row id {id}")
+                return False
+            logger.info(f"done.\nRow id {id} removed from dataset.")
+            return True
 
     def data_object_factory(cursor, row):
         fields = [column[0] for column in cursor.description]
