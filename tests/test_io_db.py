@@ -1,11 +1,10 @@
 import pytest
 import sqlite3
-import itertools
 
 from unittest.mock import patch
 
 from src.stundentool import main
-from src.modules.sqlite import db
+from src.modules.sqlite.db import logger
 
 
 
