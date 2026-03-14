@@ -22,6 +22,7 @@ class db_object:
                 logger.warning("WARN: db file not present")
             else:
                 self._conn = self._con_handle.GetConnection()
+                #siehe DatabaseHandler-Init: Was ist wenn die Datei fehlt und erstellt wird? Dann ist die Struktur nicht angefügt.
                 self._db_handle = DatabaseHandler(self._conn)
                 self._db_initiated = self._db_handle.db_initiated
             return
@@ -35,7 +36,11 @@ class db_object:
 
     def init_db(self, hours_initial: float) -> Tuple[bool, str]:
         if not self._db_file_present:
-            self._con_handle.create_db_file()
+            present, e = self._con_handle.create_db_file()
+            if not present:
+                logger.error(f"Error creating DB file")
+            else:
+                self._db_file_present = present             
         self._conn = self._con_handle.GetConnection()
         self._db_handle = DatabaseHandler(self._conn)
         self._db_initiated = self._db_handle.db_initiated

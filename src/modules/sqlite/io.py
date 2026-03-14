@@ -19,7 +19,6 @@ class ConnectionHandler:
             self.db_file_present = False
             logger.debug(f"DB file is not present at {self.path}")
             logger.error("db file missing, please use --init to create the database")
-            sys.exit(1)
         else:
             self.db_file_present = True
             logger.debug("opening new connection, returning it")
@@ -30,7 +29,10 @@ class ConnectionHandler:
                 self._conn = None
 
     def GetConnection(self) -> Optional[sqlite3.Connection]:
+        logger.debug(f"GetConnection debug output: {self.db_file_present} {self._conn}")
         if self.db_file_present:
+            if self._conn is None:
+                self._conn = sqlite3.connect(self.path)
             return self._conn
         else:
             return None
@@ -84,6 +86,7 @@ class ConnectionHandler:
             if not os.path.exists(self.path):
                 open(self.path, "a").close()
                 logger.debug("DONE")
+                self.db_file_present = True
                 return (True, "")
             else:
                 logger.debug("FAILED")

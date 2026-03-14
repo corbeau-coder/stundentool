@@ -8,12 +8,12 @@ from modules.data.data_handler import data_object
 
 class DatabaseHandler:
     def __init__(self, conn):
+        logger.debug(f"initializing DatabaseHandler with conn {conn}")
         self.db_initiated = False
         self._conn = None
 
         if conn is None:
             logger.error(f"Aborting initialization, conn variable is None {conn}")
-            sys.exit(1)
         else:
             self._conn = conn
             try:
@@ -27,8 +27,8 @@ class DatabaseHandler:
                     self.db_initiated = False
             except sqlite3.OperationalError as e:
                 self.db_initiated = False
-                logger.debug(f"DB connection cannot be established - Exception {e}")
-                sys.exit(1)
+                logger.debug(f"DB connection cannot be established - Exception {str(e)}")
+    
 
     def init_db(self, hours_initial: float) -> Tuple[bool, str]:
         logger.info("Initating database ...")

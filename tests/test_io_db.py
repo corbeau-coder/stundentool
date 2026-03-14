@@ -5,7 +5,7 @@ import itertools
 from unittest.mock import patch
 
 from src.stundentool import main
-from src.modules.sqlite import db_handler
+from src.modules.sqlite import db
 
 
 
@@ -17,7 +17,7 @@ from src.modules.sqlite import db_handler
                          )
 def test_init_db(tmp_path, monkeypatch, sql_query, response_first_column):
     path = tmp_path / "test.db"
-    with (patch("src.modules.sqlite.db_handler.logger") as logger_mock):
+    with (patch("src.modules.sqlite.db.logger") as logger_mock):
         monkeypatch.setattr("sys.argv", ["stundentool.py","--init", "1337.0"])
         with pytest.raises(SystemExit) as exc:
             main(path)
