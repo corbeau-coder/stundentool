@@ -38,7 +38,7 @@ class db_object:
         if not self._db_file_present:
             present, e = self._con_handle.create_db_file()
             if not present:
-                logger.error(f"Error creating DB file")
+                logger.error("Error creating DB file")
             else:
                 self._db_file_present = present             
         self._conn = self._con_handle.GetConnection()
