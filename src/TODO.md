@@ -16,3 +16,10 @@ Programm startet mit Zeitparameter
 
 
 store status und store inhalt trennen
+
+
+
+---
+logging strukturieren (logging-prinzipien festlegen)
+return fuckup aufräumen
+business-logik in store_handler etablieren

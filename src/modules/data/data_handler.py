@@ -13,3 +13,12 @@ class data_object():
         logger.debug(
             f"Created data object with following variable values:\ntimestamp: {self.timestamp}\nhours: {self.hours}\n"
         )
+
+class header_object():
+    hours: float
+
+    def __init__(self, hours: float):
+        self.hours = hours
+        logger.debug(
+            f"Created header object with following variable value:\nhours: {self.hours}\n"
+        )

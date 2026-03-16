@@ -3,7 +3,7 @@ import os
 import sys
 import sqlite3
 from typing import Tuple, List, Optional
-from modules.data.data_handler import data_object
+from modules.data.data_handler import data_object, header_object
 
 
 class DatabaseHandler:
@@ -100,6 +100,27 @@ class DatabaseHandler:
                 else:
                     logger.info("done")
                     return ret_data
+            except sqlite3.OperationalError as e:
+                logger.error(f"failed\nError {e} while executing sql_string {sql_string}")
+
+    def read_header(self) -> Optional[header_object]:
+        logger.info(f"Reading header from database ...")
+        sql_string = f"SELECT * FROM header"
+
+        if not self.HealthCheck():
+            return None
+        else:
+            try:
+                cursor = self._conn.cursor()
+                res = cursor.execute(sql_string)
+                ret_data = res.fetchone()
+                logger.debug(f"received following row from header select: {ret_data}")
+                if ret_data is None:
+                    logger.error(f"cannot read header")
+                    return None
+                else:
+                    logger.info("done")
+                    return header_object(ret_data[0])
             except sqlite3.OperationalError as e:
                 logger.error(f"failed\nError {e} while executing sql_string {sql_string}")
 
