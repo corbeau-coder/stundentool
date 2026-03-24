@@ -1,9 +1,7 @@
 from loguru import logger
-import os
-import sys
 import sqlite3
-from typing import Tuple, List, Optional
 from modules.data.data_handler import data_object, header_object
+from modules.helper.helper import Result, Success, Failure
 
 
 class DatabaseHandler:
@@ -30,7 +28,7 @@ class DatabaseHandler:
                 logger.debug(f"DB connection cannot be established - Exception {str(e)}")
     
 
-    def init_db(self, hours_initial: float) -> Tuple[bool, str]:
+    def init_db(self, hours_initial: float) -> Result:
         logger.info("Initating database ...")
         sql_strings = [
             "CREATE TABLE header (value float NOT NULL)",
@@ -38,12 +36,11 @@ class DatabaseHandler:
         ]
         if self._conn is None:
             logger.debug("Aborting init, _conn is None")
-            return (False, "database connection is None, aborting.")
+            return Failure("database connection is None, aborting.")
 
         if self.db_initiated:
             logger.debug("Aborting init, db_initiated is True")
-            return (
-                False,
+            return Failure(
                 "Database already initiated, aborting. Use purge function first if you want to reset database",
             )
         else:
@@ -59,18 +56,18 @@ class DatabaseHandler:
                 )
                 self._conn.commit()
             except sqlite3.OperationalError as e:
-                logger.error(f"ERROR connecting database and creating tables {e}")
-                return False, str(e)
+                logger.debug(f"ERROR connecting database and creating tables {e}")
+                return Failure(str(e))
 
             logger.info(" done.")
-            return True, ""
+            return Success("")
 
-    def read_all(self) -> Optional[List[data_object]]:
+    def read_all(self) -> Result:
         logger.info("Reading all items from database ...")
         sql_string = "SELECT * FROM body"
 
         if not self.HealthCheck():
-            return None
+            return Failure("db health check failed")
         else:
             try:            
                 cursor = self._conn.cursor()
@@ -78,37 +75,38 @@ class DatabaseHandler:
                 self._conn.row_factory = self.data_object_factory
                 ret_data = res.fetchall()
             except sqlite3.OperationalError as e:
-                logger.error(f"Error {e} while executing sql_string {sql_string}")
-                sys.exit(1)
-            return ret_data
+                logger.debug(f"Error {e} while executing sql_string {sql_string}")
+                return Failure(f"Error {e} while executing sql_string {sql_string}")
+            return Success(ret_data)
 
-    def read_one(self, id) -> Optional[data_object]:
+    def read_one(self, id) -> Result:
         logger.info(f"Reading item with ID {id} from database ...")
         sql_string = f"SELECT * FROM body WHERE ROWID is {id}"
 
         if not self.HealthCheck():
-            return None
+            return Failure("db health check failed")
         else:
             try:
                 cursor = self._conn.cursor()
-                res = cursor.execute(sql_string)
                 self._conn.row_factory = self.data_object_factory(cursor)
+                res = cursor.execute(sql_string)             
                 ret_data = res.fetchone()
                 if ret_data is None:
-                    logger.error(f"cannot read item with id {id}")
-                    sys.exit(1)
+                    logger.debug(f"cannot read item with id {id}")
+                    return Failure(f"cannot read item with id {id}")
                 else:
                     logger.info("done")
-                    return ret_data
+                    return Success(ret_data)
             except sqlite3.OperationalError as e:
-                logger.error(f"failed\nError {e} while executing sql_string {sql_string}")
+                logger.debug(f"failed\nError {e} while executing sql_string {sql_string}")
+                return Failure(f"failed\nError {e} while executing sql_string {sql_string}")
 
-    def read_header(self) -> Optional[header_object]:
-        logger.info(f"Reading header from database ...")
-        sql_string = f"SELECT * FROM header"
+    def read_header(self) -> Result:
+        logger.info("Reading header from database ...")
+        sql_string = "SELECT * FROM header"
 
         if not self.HealthCheck():
-            return None
+            return Failure("db health check failed")
         else:
             try:
                 cursor = self._conn.cursor()
@@ -116,21 +114,22 @@ class DatabaseHandler:
                 ret_data = res.fetchone()
                 logger.debug(f"received following row from header select: {ret_data}")
                 if ret_data is None:
-                    logger.error(f"cannot read header")
-                    return None
+                    logger.debug("cannot read header")
+                    return Failure("cannot read header")
                 else:
                     logger.info("done")
-                    return header_object(ret_data[0])
+                    return Success(header_object(ret_data[0]))
             except sqlite3.OperationalError as e:
-                logger.error(f"failed\nError {e} while executing sql_string {sql_string}")
+                logger.debug(f"failed\nError {e} while executing sql_string {sql_string}")
+                return Failure(f"failed\nError {e} while executing sql_string {sql_string}")
 
             
-    def write_one(self, data: data_object):
+    def write_one(self, data: data_object) -> Result:
         logger.info("Writing new item into database ...")
         sql_string = "INSERT INTO body (date, hours) VALUES (?,?)"
 
         if not self.HealthCheck():
-            return
+            return Failure("db health check failed")
         else:
             try:   
                 cursor = self._conn.cursor()
@@ -140,34 +139,34 @@ class DatabaseHandler:
                 cursor.execute(sql_string, (data.timestamp, data.hours))
                 self._conn.commit()
             except sqlite3.OperationalError as e:
-                logger.error(f"failed. Exception {e}")
-                sys.exit(1)
+                logger.debug(f"failed writing data {data_object}. Exception {str(e)}")
+                return Failure(f"failed writing data {data_object}. Exception {str(e)}")
 
             cur_last_row_id = cursor.lastrowid
             if cur_last_row_id is None or (cur_last_row_id <= last_row_id):
-                logger.error(
+                logger.debug(
                     f"failed. last row ids identical before and after insert: {last_row_id} {cur_last_row_id}"
                 )
-                sys.exit(1)
+                return Failure(f"failed. last row ids identical before and after insert: {last_row_id} {cur_last_row_id}")
             else:
                 logger.info(f"done.\nNew row added {cur_last_row_id} with data {data}")
-                sys.exit(0)
+                return Success("")
 
-    def delete_one(self, id) -> bool:
+    def delete_one(self, id) -> Result:
         logger.info(f"Deleting data item with ID {id}")
         sql_string = f"DELETE FROM body WHERE ROWID = {id}"
 
         if not self.HealthCheck():
-            return False
+            return Failure("db health check failed")
         else:
             try:        
                 cursor = self._conn.cursor()
                 cursor.execute(sql_string)
             except sqlite3.OperationalError as e:
-                logger.error(f"failed. Exception {e} occured while deleting row id {id}")
-                return False
+                logger.debug(f"failed. Exception {e} occured while deleting row id {id}")
+                return Failure((f"failed. Exception {e} occured while deleting row id {id}"))
             logger.info(f"done.\nRow id {id} removed from dataset.")
-            return True
+            return Success("")
 
     def data_object_factory(cursor, row):
         fields = [column[0] for column in cursor.description]

@@ -47,39 +47,39 @@ class db_object:
         return self._db_handle.init_db(hours_initial)
         
     def read_all(self) -> Optional[List[data_object]]:
-        if self._db_file_present & self._db_initiated:
+        if self._db_file_present and self._db_initiated:
             return self._db_handle.read_all()
         else:
             logger.error("db not ready")
             return None
         
     def read_one(self, id) -> Optional[data_object]:
-        if self._db_file_present & self._db_initiated:
+        if self._db_file_present and self._db_initiated:
             return self._db_handle.read_one(id)
         else:
             logger.error("db not ready")
             return None
         
     def read_header(self) -> Optional[header_object]:
-        if self._db_file_present & self._db_initiated:
+        if self._db_file_present and self._db_initiated:
             return self._db_handle.read_header()
         else:
             logger.error("db not ready")
             return None
 
     def write_one(self, data: data_object):
-        if self._db_file_present & self._db_initiated:
+        if self._db_file_present and self._db_initiated:
             return self._db_handle.write_one(data)
         else:
             logger.error("db not ready")
             return
 
     def delete_one(self, id) -> bool:
-        if self._db_file_present & self._db_initiated:
+        if self._db_file_present and self._db_initiated:
             return self._db_handle.delete_one(id)
         else:
             logger.error("db not ready")
             return False
         
     def GetDBStatus(self) -> bool:
-        return self._db_file_present & self._db_initiated
+        return self._db_file_present and self._db_initiated

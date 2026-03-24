@@ -79,7 +79,9 @@ def main(path):
             if args.time_value is not None:
                 if (graduation_checker(args.time_value)):
                     new_data = data_object(args.time_value)
-                    storage.write_one(new_data)
+                    result, payload = storage.write_one(new_data)
+                    if result is True:
+                        logger.info(f"data {args.time_value} sucessfull written!")
                     sys.exit(0)
                 else:
                     sys.exit(1)

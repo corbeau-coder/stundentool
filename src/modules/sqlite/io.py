@@ -2,8 +2,7 @@ from typing import Optional, Tuple
 from loguru import logger
 import os
 import sqlite3
-import sys
-
+from modules.helper.helper import Result, Success, Failure
 
 class ConnectionHandler:
     def __init__(self, path=None) -> None:
@@ -55,7 +54,7 @@ class ConnectionHandler:
             logger.debug("self.db_file_present is False, aborting CloseConnection")
             return
 
-    def purge_db(self) -> Tuple[bool, str]:
+    def purge_db(self) -> Result:
         logger.debug(f"IO module deleting db at {self.path}")
         if self.db_file_present and self._conn is not None:
             try:
@@ -69,17 +68,16 @@ class ConnectionHandler:
             os.remove(self.path)
         except FileNotFoundError as e:
             logger.debug(f"FAILED. Deleting file went wrong. Exception {e}")
-            return False, str(e)
+            return Failure(str(e))
         else:
             logger.debug("DONE")
-            return True, ""
+            return Success("")
 
-    def create_db_file(self) -> Tuple[bool, str]:
+    def create_db_file(self) -> Result:
         logger.debug(f"creating db file at {self.path}")
         if self.db_file_present:
             logger.debug("FAILED. Aborting while file_present flag is set")
-            return (
-                False,
+            return Failure(
                 "db_file_present flag is True, iniating is forbidden. If you want to initiate anyway, please purge db before this step.",
             )
         else:
@@ -87,7 +85,7 @@ class ConnectionHandler:
                 open(self.path, "a").close()
                 logger.debug("DONE")
                 self.db_file_present = True
-                return (True, "")
+                return Success("")
             else:
                 logger.debug("FAILED")
-                return (False, f"file exists, aborting file creation at {self.path}")
+                return Failure(f"file exists, aborting file creation at {self.path}")
