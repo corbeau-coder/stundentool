@@ -53,11 +53,10 @@ def main(path):
     
 
     if args.verbose:
-        logger.level("DEBUG")
+        logger.remove()
+        logger.add(sys.stderr, level="DEBUG")
         logger.info("Verbose logging configured")
-    else:
-        logger.level("INFO")
-        logger.info("Normal logging configured")
+    
 
     logger.debug("Loading DB and checking state...")
     if path is None:
